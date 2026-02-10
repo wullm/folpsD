@@ -168,6 +168,53 @@ def ExtractDataAbacusSummit_additionalcosmologies(cxxx='c000'):
 
     return k_eff_all, pkl0, pkl2, pkl4, B000, B202
 
+def ExtractDataPeregrinus(tracer='LRG',z_string='z0.5',subtract_shot=False):
+    import h5py
+    h5_group = 'normalized'
+    if subtract_shot:
+        h5_group = 'normalized_shot_noise_subtracted'
+
+    path_mike='/global/cfs/cdirs/desi/science/gqc/y3_fits/mockchallenge_abacus/measurements/sugiyama_basis/SecondGenMocks/'
+    # Load power spectrum data
+    path = '/global/cfs/cdirs/desi/science/gqc/y3_fits/mockchallenge_neutrinos/peregrinus/'+tracer+'/v1.0/spectra/DESIY1_M060_L4400_N6000_NU3000/'+z_string+'/power_spectrum.hdf5'
+    file = h5py.File(path, mode='r')
+    k = file[h5_group+'/0/k'][:]
+    pkl0 = file[h5_group+'/0/Pk'][:]
+    pkl2 = file[h5_group+'/2/Pk'][:]
+    pkl4 = file[h5_group+'/4/Pk'][:]
+    file.close()
+
+    # Load bispectrum data
+    path = '/global/cfs/cdirs/desi/science/gqc/y3_fits/mockchallenge_neutrinos/peregrinus/'+tracer+'/v1.0/spectra/DESIY1_M060_L4400_N6000_NU3000/'+z_string+'/bispectrum_sugiyama.hdf5'
+    file = h5py.File(path, mode='r')
+    B_k = file[h5_group+'/000/k'][:]
+    B000 = file[h5_group+'/000/Bk'][:]
+    B202 = file[h5_group+'/202/Bk'][:]
+    file.close()
+
+    # Load EZmock k vector
+    if (tracer=='LRG' and z_string=='z0.5'):
+        path_EZ=path_mike+'EZmock/CubicBox_6Gpc/'+tracer+'/z0.500'+'/diag/powspec/pk0_'+tracer+'_z0.500_seed0001'
+    elif (trace=='LRG' and (z_string=='z0.7' or z_string=='z0.95')):
+        path_EZ=path_mike+'EZmock/CubicBox_6Gpc/'+tracer+'/z0.800'+'/diag/powspec/pk0_'+tracer+'_z0.800_seed0001'
+    else:
+        raise Exception("No EZmocks available for this tracer/redshift combination")
+
+    ez_data = np.loadtxt(path_EZ)
+    k_eff = ez_data[:,1]
+
+    # Interpolate the Peregrinus data to the EZmock wavenumbers
+    pkl0_interp = np.interp(k_eff, k, pkl0)
+    pkl2_interp = np.interp(k_eff, k, pkl2)
+    pkl4_interp = np.interp(k_eff, k, pkl4)
+
+    # Account for the smaller k-range for the Peregrinus bispectrum calculations
+    B000_interp = np.zeros_like(k_eff)
+    B202_interp = np.zeros_like(k_eff)
+    B000_interp[k_eff < B_k.max()] = np.interp(k_eff[k_eff < B_k.max()], B_k, B000)
+    B202_interp[k_eff < B_k.max()] = np.interp(k_eff[k_eff < B_k.max()], B_k, B202)
+
+    return k_eff, pkl0_interp, pkl2_interp, pkl4_interp, B000_interp, B202_interp
 
 def covariance(k, pkl0, pkl2, pkl4, B000, B202, Nscaling = 1):
 
