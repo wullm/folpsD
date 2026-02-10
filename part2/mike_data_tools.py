@@ -168,15 +168,22 @@ def ExtractDataAbacusSummit_additionalcosmologies(cxxx='c000'):
 
     return k_eff_all, pkl0, pkl2, pkl4, B000, B202
 
-def ExtractDataPeregrinus(tracer='LRG',z_string='z0.5',subtract_shot=False):
+def ExtractDataPeregrinus(tracer='LRG',z_string='z0.5',subtract_shot=False,sim='PLANCK_M240_L4400_N6000_NU3000'):
     import h5py
     h5_group = 'normalized'
     if subtract_shot:
         h5_group = 'normalized_shot_noise_subtracted'
 
+    if (z_string == 'z0.500'):
+        z_string = 'z0.5'
+    elif (z_string == 'z0.700'):
+        z_string = 'z0.7'
+    elif (z_string == 'z0.900'):
+        z_string = 'z0.9'
+
     path_mike='/global/cfs/cdirs/desi/science/gqc/y3_fits/mockchallenge_abacus/measurements/sugiyama_basis/SecondGenMocks/'
     # Load power spectrum data
-    path = '/global/cfs/cdirs/desi/science/gqc/y3_fits/mockchallenge_neutrinos/peregrinus/'+tracer+'/v1.0/spectra/DESIY1_M060_L4400_N6000_NU3000/'+z_string+'/power_spectrum.hdf5'
+    path = '/global/cfs/cdirs/desi/science/gqc/y3_fits/mockchallenge_neutrinos/peregrinus/'+tracer+'/v1.0/spectra/'+sim+'/'+z_string+'/power_spectrum.hdf5'
     file = h5py.File(path, mode='r')
     k = file[h5_group+'/0/k'][:]
     pkl0 = file[h5_group+'/0/Pk'][:]
@@ -185,7 +192,7 @@ def ExtractDataPeregrinus(tracer='LRG',z_string='z0.5',subtract_shot=False):
     file.close()
 
     # Load bispectrum data
-    path = '/global/cfs/cdirs/desi/science/gqc/y3_fits/mockchallenge_neutrinos/peregrinus/'+tracer+'/v1.0/spectra/DESIY1_M060_L4400_N6000_NU3000/'+z_string+'/bispectrum_sugiyama.hdf5'
+    path = '/global/cfs/cdirs/desi/science/gqc/y3_fits/mockchallenge_neutrinos/peregrinus/'+tracer+'/v1.0/spectra/'+sim+'/'+z_string+'/bispectrum_sugiyama.hdf5'
     file = h5py.File(path, mode='r')
     B_k = file[h5_group+'/000/k'][:]
     B000 = file[h5_group+'/000/Bk'][:]
